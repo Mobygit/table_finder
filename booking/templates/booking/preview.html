@@ -1,0 +1,97 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Preview Your Booking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body { background-color: #1d1d1aff; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background-color: #1d1d1aff; }
+        .navbar-brand img { height: 50px; }
+        .gold-accent { color: #d4af37; }
+        footer { background-color: #1d1d1aff; color: #d4af37; padding: 20px 0; }
+        .btn-gold { background-color: #d4af37; color: #1d1d1aff; border: none; }
+        .btn-gold:hover { background-color: #bfa539; color: #fff; }
+        .preview-container { max-width: 700px; margin: 4rem auto; background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 0 20px rgba(0,77,64,0.2); }
+        .section-title { border-bottom: 2px solid #d4af37; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">
+            <img src="{% static 'images/logo.png' %}" alt="Logo" />
+        </a>
+    </div>
+</nav>
+<div class="preview-container">
+    <h2 class="gold-accent mb-4 text-center">Preview Your Booking</h2>
+    <div class="mb-4">
+        <h4 class="section-title">Selected Dishes</h4>
+        <ul class="list-group">
+            {% for entry in menu_items %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ entry.item.name }}
+                    <span class="badge bg-primary rounded-pill">x{{ entry.quantity }}</span>
+                </li>
+            {% empty %}
+                <li class="list-group-item">No dishes selected.</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="mb-4">
+        <h4 class="section-title">Reservation Details</h4>
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-5 fw-bold">Name:</div>
+                    <div class="col-7">{{ reservation.name }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-5 fw-bold">Mobile:</div>
+                    <div class="col-7">{{ reservation.mobile }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-5 fw-bold">Email:</div>
+                    <div class="col-7">{{ reservation.email }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-5 fw-bold">Number of Guests:</div>
+                    <div class="col-7">{{ reservation.num_guests }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-5 fw-bold">Date:</div>
+                    <div class="col-7">{{ reservation.date }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-5 fw-bold">Time:</div>
+                    <div class="col-7">{{ reservation.time }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form method="POST">
+        {% csrf_token %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        <button type="submit" class="btn btn-gold w-100 btn-lg">Book Now</button>
+    </form>
+</div>
+<footer class="d-flex justify-content-between container">
+    <div>
+        <p>Contact us: <a href="tel:+1234567890" class="text-white">+1 234 567 890</a> | 
+        <a href="mailto:contact@mobykhana.com" class="text-white">contact@mobykhana.com</a> | Location: 123 Food St, City</p>
+    </div>
+    <div>
+        <p>&copy; {{ now.year }} © MOBYKHANA All Rights Reserved.</p>
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

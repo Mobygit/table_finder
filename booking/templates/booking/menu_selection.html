@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Menu Selection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body { background-color: #1d1d1aff; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background-color: #1d1d1aff; }
+        .navbar-brand img { height: 50px; }
+        .gold-accent { color: #d4af37; }
+        footer { background-color: #1d1d1aff; color: #d4af37; padding: 20px 0; }
+        .food-card { cursor: pointer; position: relative; border: 2px solid transparent; border-radius: 8px; transition: border-color 0.3s ease; user-select: none; }
+        .food-card.selected { border-color: #d4af37; box-shadow: 0 0 10px #d4af37; }
+        .food-card img { border-radius: 8px; max-height: 200px; object-fit: cover; }
+        .food-card .text-muted { color: #fff !important; }
+        .food-card p strong { color: #d4af37; }
+        .food-card .form-label { color: #d4af37; }
+        .tick { position: absolute; top: 8px; right: 8px; background-color: #4CAF50; color: white; border-radius: 50%; padding: 5px 8px; font-weight: bold; display: none; z-index: 2; }
+        .food-card.selected .tick { display: block; }
+        .quantity-container { margin-top: 10px; display: none; }
+        .food-card.selected .quantity-container { display: block; }
+        .quantity-select { width: 100%; max-width: 100px; }
+        .btn-gold { background-color: #d4af37; color: #1d1d1aff; border: none; }
+        .btn-gold:disabled { background-color: #b3a24c; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">
+            <img src="{% static 'images/logo.png' %}" alt="Logo" />
+        </a>
+    </div>
+</nav>
+<!-- Page Content -->
+<div class="container my-5">
+    <h2 class="text-center gold-accent mb-4">Our Dishes</h2>
+    <form id="menuForm" method="POST" action="{% url 'menu_selection' %}">
+        {% csrf_token %}
+        <div class="row g-4 justify-content-center">
+            {% for item in menu %}
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="food-card position-relative p-2 h-100" data-food-id="{{ item.id }}">
+                    <input type="checkbox" name="menu_items" id="menu_item_{{ item.id }}" value="{{ item.id }}" class="form-check-input position-absolute top-0 start-0 m-2" style="z-index:2;">
+                    <div class="tick position-absolute top-0 end-0 m-2" style="display:none; font-size:1.5rem;">&#10003;</div>
+                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-fluid rounded mb-2" />
+                    <p class="mt-2 mb-1"><strong>{{ item.name }}</strong></p>
+                    <p class="text-muted small">Description: {{ item.Description }}</p>
+                    <div class="mt-2">
+                        <label for="quantity_{{ item.id }}" class="form-label">Quantity:</label>
+                        <input type="number" name="quantity_{{ item.id }}" id="quantity_{{ item.id }}" class="form-control quantity-input" value="1" min="1" max="3" style="width:80px;" disabled>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <button type="submit" id="bookNowBtn" class="btn btn-gold btn-lg" disabled>Book Now</button>
+        </div>
+    </form>
+</div>
+<!-- Footer -->
+<footer class="d-flex justify-content-between container">
+    <div>
+        <p>Contact us: <a href="tel:+1234567890" class="text-white">+1 234 567 890</a> | 
+        <a href="mailto:contact@mobykhana.com " class="text-white">contact@mobykhana.com </a> | Location: 123 Food St, City</p>
+    </div>
+    <div>
+        <p>&copy; {{ now.year }} © MOBYKHANA All Rights Reserved.</p>
+    </div>
+</footer>
+<!-- Bootstrap JS and Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const foodCards = document.querySelectorAll('.food-card');
+        const bookNowBtn = document.getElementById('bookNowBtn');
+        const menuForm = document.getElementById('menuForm');
+        function updateBookNowButton() {
+            // Enable Book Now if any dish is selected
+            let enabled = false;
+            document.querySelectorAll('input[name="menu_items"]:checked').forEach(cb => {
+                enabled = true;
+            });
+            bookNowBtn.disabled = !enabled;
+        }
+        foodCards.forEach(card => {
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            const tick = card.querySelector('.tick');
+            const quantityInput = card.querySelector('.quantity-input');
+            // Show tick if already checked (for back navigation)
+            if (checkbox.checked) {
+                tick.style.display = 'block';
+                card.classList.add('selected');
+                quantityInput.disabled = false;
+            }
+            card.addEventListener('click', (e) => {
+                if (e.target === checkbox || e.target === quantityInput) return;
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    tick.style.display = 'block';
+                    card.classList.add('selected');
+                    quantityInput.disabled = false;
+                } else {
+                    tick.style.display = 'none';
+                    card.classList.remove('selected');
+                    quantityInput.disabled = true;
+                }
+                updateBookNowButton();
+            });
+        });
+        updateBookNowButton();
+
+        // Enable all selected quantity inputs before form submit
+        menuForm.addEventListener('submit', function(e) {
+            document.querySelectorAll('input[name="menu_items"]:checked').forEach(cb => {
+                const q = document.getElementById('quantity_' + cb.value);
+                if (q) q.disabled = false;
+            });
+        });
+    });
+</script>
+</body>
+</html>
